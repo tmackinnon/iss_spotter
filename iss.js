@@ -24,6 +24,7 @@ const fetchMyIP = function(callback) {
 
 };
 
+
 //funcion takes in an IP address and returns the latitude and longitude
 const fetchCoordsByIP = function(ip, callback) {
   //request data from API
@@ -39,7 +40,7 @@ const fetchCoordsByIP = function(ip, callback) {
     const data = JSON.parse(body);
 
     //for invalid IP errors
-    if (data.success === false) {
+    if (!data.success) {
       const msg = `Server message says: ${data.message} when searching for IP: ${data.ip}`;
       callback(Error(msg), null);
       return;
@@ -58,17 +59,8 @@ const fetchCoordsByIP = function(ip, callback) {
 
 };
 
-/**
- * Makes a single API request to retrieve upcoming ISS fly over times the for the given lat/lng coordinates.
- * Input:
- *   - An object with keys `latitude` and `longitude`
- *   - A callback (to pass back an error or the array of resulting data)
- * Returns (via Callback):
- *   - An error, if any (nullable)
- *   - The fly over times as an array of objects (null if error). Example:
- *     [ { risetime: 134564234, duration: 600 }, ... ]
- */
-//ingle API request to retrieve upcoming ISS fly over times the for the given lat/lng coordinates
+
+//single API request to retrieve upcoming ISS fly over times the for the given lat/lng coordinates
 const fetchISSFlyOverTimes = function(coords, callback) {
 
   //make request for flyovertimes
@@ -95,5 +87,32 @@ const fetchISSFlyOverTimes = function(coords, callback) {
   });
 
 };
+//function organizes multiple API request to return data od upcoming ISS flyovers for the users location
+const nextISSTimesForMyLocation = function(callback) {
+  //run fetchmyIP
+  fetchMyIP((error, ip) => {
+    if (error) {
+      callback(error, null);
+      return;
+    }
+    //if no errors run next function using IP from above
+    fetchCoordsByIP(ip, (error, data) => {
+      if (error) {
+        callback(error, null);
+        return;
+      }
+      //if no error run next function and use data from above
+      fetchISSFlyOverTimes(data, (error, flyOverdata) => {
+        if (error) {
+          callback(error, null);
+          return;
+        }
+        //if no error pass flyoverdata to callback function
+        callback(null, flyOverdata);
+      });
+    });
+  });
 
-module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes };
+};
+
+module.exports = { nextISSTimesForMyLocation };
