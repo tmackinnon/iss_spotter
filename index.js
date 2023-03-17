@@ -17,7 +17,7 @@ nextISSTimesForMyLocation((error, passTimes) => {
   printPassTimes(passTimes);
 });
 
-
+module.exports = { printPassTimes }
 
 //commented out tests for functions in iss.js
 // fetchMyIP((error, ip) => {
